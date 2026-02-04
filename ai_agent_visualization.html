@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 智能体三级演进 | 从聊天到自主决策</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 核心品牌色 */
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            
+            /* 层级颜色 */
+            --l1: #3b82f6;  /* 蓝色 - LLM */
+            --l2: #f59e0b;  /* 橙色 - Workflow */
+            --l3: #10b981;  /* 绿色 - Agent */
+            
+            /* 基础颜色 */
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            
+            /* 暗色模式/代码块颜色 */
+            --dark-bg: #0f172a;
+            --dark-surface: #1e293b;
+            --dark-border: #334155;
+            --dark-text: #e2e8f0;
+
+            /* 阴影系统 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-glow-l3: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        /* ===== 头部 Hero ===== */
+        .hero {
+            text-align: center;
+            padding: 80px 20px 60px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            margin: -40px -20px 60px;
+            border-radius: 0 0 40px 40px;
+            box-shadow: var(--shadow-lg);
+        }
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            letter-spacing: -0.02em;
+        }
+        .hero p {
+            font-size: 1.35em;
+            opacity: 0.95;
+            margin-bottom: 30px;
+            font-weight: 300;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .video-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .video-btn:hover {
+            background: white;
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        /* 视频缩略图优化 */
+        .main-video-thumbnail { margin-top: 40px; display: flex; justify-content: center; }
+        .main-video-wrapper {
+            position: relative;
+            display: inline-block;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 4px solid rgba(255,255,255,0.1);
+        }
+        .main-video-wrapper:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+        }
+        .main-video-thumbnail img {
+            width: 600px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .main-video-play-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            background: rgba(255, 0, 0, 0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 2.5em;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.4);
+        }
+        .main-video-wrapper:hover .main-video-play-overlay {
+            transform: translate(-50%, -50%) scale(1.1);
+            background: #ff0000;
+        }
+        /* ===== 新版技术路线专用样式 ===== */
+        .roadmap-container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .phase-block {
+            margin-bottom: 40px;
+            position: relative;
+            padding-left: 40px;
+            border-left: 2px dashed #cbd5e1;
+        }
+        .phase-block:last-child { border-left: none; }
+        
+        .phase-marker {
+            position: absolute;
+            left: -20px;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: var(--l3);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 0 0 6px #fff;
+        }
+
+        .phase-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text);
+        }
+
+        /* 技术栈网格 */
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stack-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.2s;
+        }
+        .stack-card:hover { border-color: var(--l3); transform: translateY(-2px); }
+        .stack-icon { font-size: 1.5em; margin-bottom: 8px; display: block; }
+        .stack-name { font-weight: 600; color: var(--text); display: block; }
+        .stack-desc { font-size: 0.85em; color: var(--text-light); }
+
+        /* 架构流程图模拟 */
+        .arch-flow {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            font-family: monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        .flow-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; position: relative; z-index: 2; }
+        .flow-node {
+            background: #334155;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+        .flow-node strong { display: block; color: #60a5fa; margin-bottom: 4px; }
+        .flow-node small { font-size: 0.8em; color: #94a3b8; }
+        .flow-arrow { color: #64748b; font-size: 1.2em; }
+
+        /* 数据管道可视化 */
+        .pipeline-viz {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .pipe-stage {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px;
+            min-width: 120px;
+            text-align: center;
+            position: relative;
+        }
+        .pipe-stage::after {
+            content: '→';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+        .pipe-stage:last-child::after { display: none; }
+        .pipe-icon { font-size: 1.5em; display: block; margin-bottom: 5px; }
+
+        /* 状态定义列表 */
+        .state-list {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        .state-item {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        .state-key { font-weight: 600; color: #047857; width: 120px; flex-shrink: 0; }
+        .state-val { color: #374151; }
+        
+        /* ===== 通用组件 ===== */
+        .section-title {
+            font-size: 2.2em;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--text);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        
+        /* 卡片基础样式 */
+        .card-base {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+        .card-base:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 快速理解卡片 */
+        .quick-understand {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-md);
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .compare-card {
+            padding: 24px;
+            border-radius: 16px;
+            border: 2px solid transparent;
+            background: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+        .compare-card.l1 { border-color: rgba(59, 130, 246, 0.3); background: linear-gradient(to bottom right, #f0f7ff, #ffffff); }
+        .compare-card.l2 { border-color: rgba(245, 158, 11, 0.3); background: linear-gradient(to bottom right, #fffbf0, #ffffff); }
+        .compare-card.l3 { border-color: rgba(16, 185, 129, 0.3); background: linear-gradient(to bottom right, #f0fdf4, #ffffff); }
+        
+        .compare-card h3 { font-size: 1.4em; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        .compare-card.l1 h3 { color: var(--l1); }
+        .compare-card.l2 h3 { color: var(--l2); }
+        .compare-card.l3 h3 { color: var(--l3); }
+
+        .example-box {
+            background: rgba(255,255,255,0.8);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border-left: 4px solid;
+            box-shadow: var(--shadow-sm);
+        }
+        .compare-card.l1 .example-box { border-left-color: var(--l1); }
+        .compare-card.l2 .example-box { border-left-color: var(--l2); }
+        .compare-card.l3 .example-box { border-left-color: var(--l3); }
+
+        /* ===== 三级详细说明 ===== */
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+        .level-card {
+            background: var(--surface);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+        .level-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+        
+        .level-header { padding: 30px; color: white; position: relative; overflow: hidden; }
+        .level-card.l1 .level-header { background: linear-gradient(135deg, var(--l1), #1d4ed8); }
+        .level-card.l2 .level-header { background: linear-gradient(135deg, var(--l2), #b45309); }
+        .level-card.l3 .level-header { background: linear-gradient(135deg, var(--l3), #047857); }
+        
+        .level-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(4px);
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .level-title { font-size: 2em; font-weight: 800; margin-bottom: 5px; line-height: 1.2; }
+        
+        .level-body { padding: 30px; }
+        .feature { display: flex; gap: 16px; margin-bottom: 16px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #f1f5f9; }
+        .feature-icon { font-size: 1.5em; flex-shrink: 0; padding-top: 2px; }
+        
+        /* 工具列表优化 */
+        .tools-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border); }
+        .tool {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: #fff; border-radius: 12px;
+            margin-bottom: 12px; border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .tool:hover { border-color: var(--l1); box-shadow: var(--shadow-sm); transform: translateX(2px); }
+        
+        .btn {
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; text-decoration: none; transition: all 0.2s; font-size: 1.1em;
+        }
+        .btn:hover { transform: scale(1.1); }
+        .btn-web { background: #eff6ff; color: var(--l1); }
+        
+        /* YouTube 缩略图小组件 */
+        .yt-thumbnail-wrapper { position: relative; display: inline-block; border-radius: 8px; overflow: hidden; }
+        .yt-thumbnail {
+            width: 100px; height: 56px; object-fit: cover;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.7em; transition: transform 0.3s;
+        }
+        .yt-thumbnail-wrapper:hover .yt-thumbnail { transform: scale(1.1); }
+        .yt-play-icon-sm {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 24px; height: 24px; background: rgba(220, 38, 38, 0.9);
+            border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; pointer-events: none;
+        }
+
+        /* ===== ReAct 循环 ===== */
+        .react-section {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+            color: white; border-radius: 20px; padding: 40px; margin: 40px 0;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .react-cycle { display: flex; justify-content: center; align-items: center; gap: 30px; flex-wrap: wrap; margin-top: 30px; position: relative; z-index: 2; }
+        .react-step {
+            width: 150px; height: 150px;
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.3s;
+        }
+        .react-step:hover {
+            background: rgba(255,255,255,0.1); transform: scale(1.1); border-color: var(--l3);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+        }
+        .react-step-icon { font-size: 2.8em; margin-bottom: 8px; }
+        .arrow { font-size: 2em; color: var(--l3); opacity: 0.6; }
+
+        /* ===== 决策部分 ===== */
+        .decision-section {
+            background: var(--surface); border-radius: 20px; padding: 40px; margin: 40px 0;
+            box-shadow: var(--shadow-md);
+        }
+        .decision-comparison {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 30px; margin-top: 40px;
+        }
+        .decision-card {
+            border-radius: 16px; padding: 30px; border: 2px solid transparent;
+            transition: all 0.3s; height: 100%;
+        }
+        .decision-card.ready-made { border-color: #bfdbfe; background: linear-gradient(180deg, #eff6ff 0%, #fff 100%); }
+        .decision-card.custom { border-color: #bbf7d0; background: linear-gradient(180deg, #f0fdf4 0%, #fff 100%); }
+        .decision-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        
+        .pros-cons h4 { margin-top: 20px; margin-bottom: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .pros ul, .cons ul { list-style: none; padding-left: 0; }
+        .pros li, .cons li { padding: 6px 0 6px 28px; position: relative; font-size: 0.95em; }
+        .pros li::before { content: '✓'; position: absolute; left: 0; color: #10b981; font-weight: bold; }
+        .cons li::before { content: '✕'; position: absolute; left: 0; color: #ef4444; font-weight: bold; }
+
+        /* 推荐策略 */
+        .recommendation {
+            background: #fffbeb; border: 1px solid #fcd34d; border-radius: 16px; padding: 30px; margin-top: 30px;
+        }
+        .recommendation-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;
+        }
+        .rec-item {
+            background: white; padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* ===== 技术路线 ===== */
+        .tech-roadmap { background: var(--surface); border-radius: 20px; padding: 40px; margin: 40px 0; box-shadow: var(--shadow-md); }
+        
+        /* 模拟代码窗口样式 */
+        .code-window {
+            background: #1e293b; border-radius: 12px; overflow: hidden; margin-top: 15px;
+            box-shadow: var(--shadow-lg); font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .code-header {
+            background: #334155; padding: 10px 16px; display: flex; gap: 8px; align-items: center;
+        }
+        .window-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+        .code-content { padding: 20px; color: #e2e8f0; font-size: 0.85em; overflow-x: auto; line-height: 1.6; }
+        
+        /* 开发步骤 */
+        .dev-step {
+            background: white; padding: 24px; border-radius: 16px; margin-bottom: 20px;
+            border-left: 5px solid #10b981; box-shadow: var(--shadow-sm);
+        }
+        .dev-step-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .dev-step-number {
+            width: 40px; height: 40px; background: #10b981; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.2em;
+        }
+
+        /* ===== 生态系统 ===== */
+        .agent-card {
+            border: 1px solid var(--border); border-radius: 16px; padding: 20px; transition: all 0.3s;
+            background: white; height: 100%; display: flex; flex-direction: column;
+        }
+        .agent-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: var(--l3); }
+        .agent-thumbnail-wrapper {
+            position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 15px;
+            height: 140px; background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+        }
+        /* 占位符背景 */
+        .thumb-bg { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .bg-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .bg-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+        /* ===== Agent Cockpit 样式重构 ===== */
+        .cockpit-container {
+            background: var(--dark-bg); border-radius: 16px; overflow: hidden;
+            height: 650px; display: flex; font-family: 'Inter', sans-serif;
+            box-shadow: var(--shadow-lg); border: 1px solid var(--dark-border);
+        }
+        .cockpit-sidebar {
+            width: 70px; background: var(--dark-surface); border-right: 1px solid var(--dark-border);
+            display: flex; flex-direction: column; align-items: center; padding: 24px 0; gap: 24px;
+        }
+        .cockpit-logo {
+            width: 44px; height: 44px; background: var(--primary); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        .sidebar-icon {
+            width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #94a3b8; transition: all 0.2s;
+        }
+        .sidebar-icon:hover, .sidebar-icon.active { background: rgba(255,255,255,0.1); color: white; }
+        
+        .cockpit-main { flex: 1; display: flex; overflow: hidden; }
+        .chat-panel {
+            width: 35%; min-width: 320px; border-right: 1px solid var(--dark-border);
+            background: #162032; display: flex; flex-direction: column;
+        }
+        .panel-header {
+            height: 60px; border-bottom: 1px solid var(--dark-border); display: flex; align-items: center;
+            padding: 0 20px; justify-content: space-between; background: rgba(30, 41, 59, 0.8);
+        }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .message-bubble { padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.5; max-width: 90%; }
+        .msg-system { background: #334155; color: #e2e8f0; border: 1px solid #475569; align-self: flex-start; }
+        .msg-user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-agent { background: #334155; color: #e2e8f0; border: 1px solid #475569; align-self: flex-start; border-bottom-left-radius: 2px; }
+        
+        .chat-input-area { padding: 20px; background: var(--dark-surface); border-top: 1px solid var(--dark-border); }
+        .chat-input {
+            width: 100%; background: #0f172a; color: #e2e8f0; border: 1px solid #475569;
+            border-radius: 12px; padding: 12px; resize: none; height: 80px; outline: none;
+            font-size: 13px;
+        }
+        .send-btn {
+            position: absolute; bottom: 12px; right: 12px; padding: 8px; border-radius: 8px;
+            background: var(--primary); color: white; border: none; cursor: pointer;
+        }
+
+        .viz-panel { flex: 1; display: flex; flex-direction: column; background: #0f172a; }
+        .graph-area { flex: 1; position: relative; background: radial-gradient(circle at center top, #1e293b 0%, #0f172a 70%); }
+        .logs-area { height: 250px; background: #0b1120; border-top: 1px solid var(--dark-border); display: flex; }
+        .logs-col { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--dark-border); }
+        .logs-header {
+            padding: 10px 16px; background: #1e293b; border-bottom: 1px solid var(--dark-border);
+            font-size: 11px; font-weight: 600; color: #94a3b8; display: flex; justify-content: space-between;
+        }
+        .logs-content { flex: 1; padding: 16px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 11px; color: #e2e8f0; }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2em; }
+            .hero p { font-size: 1.1em; }
+            .levels-grid { grid-template-columns: 1fr; }
+            .react-cycle { flex-direction: column; }
+            .arrow { transform: rotate(90deg); margin: 10px 0; }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .cockpit-container { flex-direction: column; height: auto; }
+            .chat-panel { width: 100%; height: 400px; }
+            .viz-panel { height: 500px; }
+            .logs-area { flex-direction: column; height: auto; }
+            .logs-col { height: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="hero">
+            <h1>🤖 AI 智能体三级演进</h1>
+            <p>从"聊天机器人"到"自主员工"的完整进化路径</p>
+            <a href="https://www.youtube.com/watch?v=FwOTs4UxQS4" target="_blank" class="video-btn">
+                <span>▶️</span>
+                <span>观看完整视频讲解</span>
+            </a>
+            <div class="main-video-thumbnail">
+                <a href="https://www.youtube.com/watch?v=FwOTs4UxQS4" target="_blank" class="main-video-wrapper">
+                    <img src="https://img.youtube.com/vi/FwOTs4UxQS4/mqdefault.jpg" alt="AI 智能体三级演进视频" onerror="this.src='https://img.youtube.com/vi/FwOTs4UxQS4/hqdefault.jpg'">
+                    <div class="main-video-play-overlay">▶</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="quick-understand">
+            <h2>💡 30秒快速理解：用一个真实例子</h2>
+            <p>假设你是销售经理，每天早上需要整理前一天的客户跟进情况</p>
+            <div class="comparison-grid">
+                <div class="compare-card l1">
+                    <h3>❌ Level 1: LLM</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-light);">你问："帮我整理昨天的客户跟进记录"</p>
+                    <div class="example-box">
+                        <strong>ChatGPT 的回答：</strong>
+                        <p style="margin-top: 8px; font-size: 0.9em; color: var(--text-light); line-height: 1.6;">
+                            "我无法访问你的 CRM 系统，因为我没有连接数据库的能力。我只能根据你提供的信息来整理。"
+                        </p>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light); line-height: 1.6;">
+                        <strong>现实：</strong>你需要手动从 CRM 复制数据，粘贴给 ChatGPT，它才能帮你整理。相当于"有大脑，没手脚"。
+                    </p>
+                </div>
+
+                <div class="compare-card l2">
+                    <h3>⚠️ Level 2: 工作流</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-light);">你问："帮我整理昨天的客户跟进记录"</p>
+                    <div class="example-box">
+                        <strong>Zapier/Make.com 工作流：</strong>
+                        <p style="margin-top: 8px; font-size: 0.9em; color: var(--text-light); line-height: 1.6;">
+                            "已从 CRM 读取数据，已生成报告。但你如果问'哪些客户需要紧急跟进'，它无法回答，因为流程里没有这一步。"
+                        </p>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light); line-height: 1.6;">
+                        <strong>现实：</strong>能自动执行预设流程，但很死板。如果需求稍微变化，就需要程序员重新写流程。
+                    </p>
+                </div>
+
+                <div class="compare-card l3">
+                    <h3>✅ Level 3: 智能体</h3>
+                    <p style="margin-bottom: 15px; color: var(--text-light);">你问："帮我整理昨天的客户跟进记录"</p>
+                    <div class="example-box">
+                        <strong>AI Agent 的做法：</strong>
+                        <p style="margin-top: 8px; font-size: 0.9em; color: var(--text-light); line-height: 1.6;">
+                            "已从 CRM 读取数据，已分析跟进情况，已识别出 3 个需要紧急跟进的客户，已生成报告并发送到你的邮箱。需要我帮你安排跟进时间吗？"
+                        </p>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 0.9em; color: var(--text-light); line-height: 1.6;">
+                        <strong>现实：</strong>会自己思考需要做什么，主动调用工具，还能根据结果提出建议。就像雇了个靠谱的助理。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="levels-section">
+            <h2 class="section-title">📚 三级详细说明</h2>
+            <div class="levels-grid">
+            
+                <div class="level-card l1">
+                    <div class="level-header">
+                        <span class="level-badge">Level 1</span>
+                        <div class="level-title">大型语言模型 (LLM)</div>
+                        <div class="level-subtitle">被动思考者 · 有脑无手</div>
+                    </div>
+                    <div class="level-body">
+                        <div class="features">
+                            <div class="feature">
+                                <span class="feature-icon">🧠</span>
+                                <div class="feature-text">
+                                    <strong>强项</strong>
+                                    <small>文本生成、代码编写、逻辑推理、翻译总结</small>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">🚫</span>
+                                <div class="feature-text">
+                                    <strong>致命弱点</strong>
+                                    <small>无法联网、无法操作 App、无法访问实时数据</small>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">⏸️</span>
+                                <div class="feature-text">
+                                    <strong>工作模式</strong>
+                                    <small>你问 → 它答。完全被动。</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tools-section">
+                            <h4>典型代表</h4>
+                            <div class="tool">
+                                <div class="tool-info">
+                                    <strong>ChatGPT-4o</strong>
+                                    <span>OpenAI 最新多模态模型</span>
+                                </div>
+                                <div class="tool-btns">
+                                    <a href="https://chat.openai.com" target="_blank" class="btn btn-web">🌐</a>
+                                    <a href="https://www.youtube.com/results?search_query=ChatGPT+4o+tutorial+2024" target="_blank" class="yt-thumbnail-wrapper">
+                                        <div class="yt-thumbnail chatgpt"><span class="yt-play-icon-sm">▶</span></div>
+                                    </a>
+                                </div>
+                            </div>
+                            </div>
+                    </div>
+                </div>
+
+                <div class="level-card l2">
+                    <div class="level-header">
+                        <span class="level-badge">Level 2</span>
+                        <div class="level-title">AI 工作流 (Workflow)</div>
+                        <div class="level-subtitle">自动化管道 · 预设路径</div>
+                    </div>
+                    <div class="level-body">
+                        <div class="features">
+                            <div class="feature">
+                                <span class="feature-icon">⛓️</span>
+                                <div class="feature-text">
+                                    <strong>核心逻辑</strong>
+                                    <small>预设"如果 A，那么 B"的固定流程</small>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">🛠️</span>
+                                <div class="feature-text">
+                                    <strong>能力</strong>
+                                    <small>连接应用、调用 API、处理数据、定时执行</small>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">⚠️</span>
+                                <div class="feature-text">
+                                    <strong>致命局限性</strong>
+                                    <small>遇到未预设的情况会卡死</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tools-section">
+                            <h4>典型工具</h4>
+                            <div class="tool">
+                                <div class="tool-info">
+                                    <strong>n8n</strong>
+                                    <span>开源自动化平台</span>
+                                </div>
+                                <div class="tool-btns">
+                                    <a href="https://n8n.io" target="_blank" class="btn btn-web">🌐</a>
+                                    <a href="https://www.youtube.com/results?search_query=n8n+tutorial+beginner" target="_blank" class="yt-thumbnail-wrapper">
+                                        <div class="yt-thumbnail n8n"><span class="yt-play-icon-sm">▶</span></div>
+                                    </a>
+                                </div>
+                            </div>
+                            </div>
+                    </div>
+                </div>
+
+                <div class="level-card l3">
+                    <div class="level-header">
+                        <span class="level-badge">Level 3</span>
+                        <div class="level-title">AI 智能体 (Agent)</div>
+                        <div class="level-subtitle">自主决策者 · 会思考会行动</div>
+                    </div>
+                    <div class="level-body">
+                        <div class="features">
+                            <div class="feature">
+                                <span class="feature-icon">🤖</span>
+                                <div class="feature-text">
+                                    <strong>核心能力</strong>
+                                    <small>目标驱动、自主决策、动态调整</small>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">🔄</span>
+                                <div class="feature-text">
+                                    <strong>迭代优化</strong>
+                                    <small>执行失败会自我修正，直到成功</small>
+                                </div>
+                            </div>
+                            <div class="feature">
+                                <span class="feature-icon">🚀</span>
+                                <div class="feature-text">
+                                    <strong>现实应用</strong>
+                                    <small>客服 Agent、销售 Agent、财务 Agent</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tools-section">
+                            <h4>前沿项目</h4>
+                            <div class="tool">
+                                <div class="tool-info">
+                                    <strong>LangGraph</strong>
+                                    <span>生产级 Agent 框架</span>
+                                </div>
+                                <div class="tool-btns">
+                                    <a href="https://python.langchain.com/docs/langgraph/" target="_blank" class="btn btn-web">🌐</a>
+                                    <a href="https://www.youtube.com/results?search_query=LangGraph+tutorial+agent" target="_blank" class="yt-thumbnail-wrapper">
+                                        <div class="yt-thumbnail langgraph"><span class="yt-play-icon-sm">▶</span></div>
+                                    </a>
+                                </div>
+                            </div>
+                            </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="react-section">
+            <h2>🔄 ReAct 框架：智能体是怎么工作的？</h2>
+            <p>智能体不是一次性给出答案，而是"想一步、做一步、看结果、再想下一步"的循环</p>
+            <div class="react-cycle">
+                <div class="react-step">
+                    <div class="react-step-icon">💭</div>
+                    <div class="react-step-title">推理</div>
+                    <div class="react-step-desc">该做什么？</div>
+                </div>
+                <div class="arrow">➜</div>
+                <div class="react-step">
+                    <div class="react-step-icon">⚡</div>
+                    <div class="react-step-title">行动</div>
+                    <div class="react-step-desc">调用工具</div>
+                </div>
+                <div class="arrow">➜</div>
+                <div class="react-step">
+                    <div class="react-step-icon">👁️</div>
+                    <div class="react-step-title">观察</div>
+                    <div class="react-step-desc">结果对吗？</div>
+                </div>
+                <div class="arrow">➜</div>
+                <div class="react-step">
+                    <div class="react-step-icon">🔄</div>
+                    <div class="react-step-title">迭代</div>
+                    <div class="react-step-desc">修正重试</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="decision-section">
+            <div class="decision-header">
+                <h2>🤔 公司应该怎么选？现成产品 vs 自研改装</h2>
+                <p>根据 2024 年调研，60% 的公司选择先用现成产品验证，40% 的公司直接自研。</p>
+            </div>
+
+            <div class="decision-comparison">
+                <div class="decision-card ready-made">
+                    <div class="decision-title">
+                        <span>📦</span>
+                        <span>直接使用现成产品</span>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h4>✅ 优势</h4>
+                            <ul>
+                                <li><strong>快速上线：</strong>3-7 天就能用上</li>
+                                <li><strong>初期成本低：</strong>AgentGPT 免费版可用</li>
+                                <li><strong>功能完整：</strong>经过大量验证，稳定</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h4>❌ 劣势</h4>
+                            <ul>
+                                <li><strong>定制化有限：</strong>无法深度对接内部 ERP</li>
+                                <li><strong>数据安全风险：</strong>数据可能经过外部</li>
+                                <li><strong>成本不可控：</strong>API 调用费随规模增加</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="decision-card custom">
+                    <div class="decision-title">
+                        <span>🔧</span>
+                        <span>自己改装/开发</span>
+                    </div>
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h4>✅ 优势</h4>
+                            <ul>
+                                <li><strong>完全定制：</strong>深度对接内部系统</li>
+                                <li><strong>数据安全：</strong>数据完全在内网</li>
+                                <li><strong>知识沉淀：</strong>训练企业专属知识库</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h4>❌ 劣势</h4>
+                            <ul>
+                                <li><strong>开发周期长：</strong>需要 3-4 个月起</li>
+                                <li><strong>初期成本高：</strong>需要专业团队投入</li>
+                                <li><strong>技术门槛高：</strong>需要懂 LLM 和系统集成</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendation">
+                <h3>💡 推荐策略：渐进式路径</h3>
+                <div class="recommendation-grid">
+                    <div class="rec-item">
+                        <strong>小公司（&lt;50人）</strong>
+                        <p>建议直接使用现成产品（AgentGPT、AutoGPT）</p>
+                    </div>
+                    <div class="rec-item">
+                        <strong>中型公司（50-500人）</strong>
+                        <p>先用现成产品验证，再逐步自研</p>
+                    </div>
+                    <div class="rec-item">
+                        <strong>大型公司（&gt;500人）</strong>
+                        <p>自研/改装为主，现成产品为辅</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tech-roadmap">
+            <h2>🛠️ 技术路线：企业级 Agent 开发蓝图</h2>
+            <p>不要从零造轮子。这是目前最成熟、落地最快的主流技术架构方案。</p>
+
+            <div class="roadmap-container">
+                
+                <div class="phase-block">
+                    <div class="phase-marker">1</div>
+                    <div class="phase-title">基建选型 (The Tech Stack)</div>
+                    <p style="color:var(--text-light); margin-bottom: 20px;">这一步决定了系统的上限。下面是最主流的组合方案，根据你的需求（成本、性能、数据安全）来选择。</p>
+                    
+                    <!-- LLM 选择 -->
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="font-size: 1.2em; font-weight: 700; color: var(--text); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>🧠</span> 核心大脑 (LLM) - 选一个
+                        </h4>
+                        <div class="stack-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                            <div class="stack-card" style="border-left: 4px solid #3b82f6;">
+                                <span class="stack-icon">🤖</span>
+                                <span class="stack-name"><strong>OpenAI 系列</strong></span>
+                                <span class="stack-desc">
+                                    <strong>GPT-4o：</strong>最强推理，适合复杂任务（$5/1M tokens）<br>
+                                    <strong>GPT-4o-mini：</strong>性价比高，适合简单任务（$0.15/1M tokens）<br>
+                                    <span style="color: #10b981; font-size: 0.85em;">✓ 推荐：混合使用，复杂用 4o，简单用 mini</span>
+                                </span>
+                            </div>
+                            <div class="stack-card" style="border-left: 4px solid #d97706;">
+                                <span class="stack-icon">🧠</span>
+                                <span class="stack-name"><strong>Anthropic 系列</strong></span>
+                                <span class="stack-desc">
+                                    <strong>Claude 3.5 Sonnet：</strong>长文本、强推理（$3/1M tokens）<br>
+                                    <strong>Claude 3 Opus：</strong>最强性能，但更贵（$15/1M tokens）<br>
+                                    <span style="color: #10b981; font-size: 0.85em;">✓ 适合：需要超长上下文（200k+ tokens）</span>
+                                </span>
+                            </div>
+                            <div class="stack-card" style="border-left: 4px solid #8b5cf6;">
+                                <span class="stack-icon">💎</span>
+                                <span class="stack-name"><strong>开源模型（本地部署）</strong></span>
+                                <span class="stack-desc">
+                                    <strong>Llama 3.1 70B：</strong>Meta 开源，性能接近 GPT-4<br>
+                                    <strong>Qwen 2.5 72B：</strong>阿里开源，中文能力强<br>
+                                    <strong>ChatGLM3-6B：</strong>轻量级，适合小规模<br>
+                                    <span style="color: #f59e0b; font-size: 0.85em;">⚠️ 需要：GPU 服务器（8GB+ 显存）</span>
+                                </span>
+                            </div>
+                            <div class="stack-card" style="border-left: 4px solid #10b981;">
+                                <span class="stack-icon">⚡</span>
+                                <span class="stack-name"><strong>混合方案（推荐）</strong></span>
+                                <span class="stack-desc">
+                                    <strong>策略：</strong>简单任务用开源（省钱），复杂任务用 API（准确）<br>
+                                    <strong>示例：</strong>文档总结用 Qwen，客户咨询用 GPT-4o<br>
+                                    <span style="color: #10b981; font-size: 0.85em;">✓ 最佳实践：成本与性能的平衡</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 框架选择 -->
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="font-size: 1.2em; font-weight: 700; color: var(--text); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>🎮</span> 编排框架 - 选一个
+                        </h4>
+                        <div class="stack-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                            <div class="stack-card" style="border-left: 4px solid #10b981; background: linear-gradient(to right, #f0fdf4, #fff);">
+                                <span class="stack-icon">📊</span>
+                                <span class="stack-name"><strong>LangGraph（最推荐）</strong></span>
+                                <span class="stack-desc">
+                                    <strong>特点：</strong>基于图的状态机，比 LangChain Chain 更可控<br>
+                                    <strong>优势：</strong>生产级、生态完善、80k+ stars<br>
+                                    <strong>适合：</strong>企业级 Agent，需要复杂流程控制<br>
+                                    <span style="color: #10b981; font-size: 0.85em;">✓ 2024 年最主流的选择</span>
+                                </span>
+                            </div>
+                            <div class="stack-card" style="border-left: 4px solid #dc2626;">
+                                <span class="stack-icon">👥</span>
+                                <span class="stack-name"><strong>CrewAI</strong></span>
+                                <span class="stack-desc">
+                                    <strong>特点：</strong>多智能体协作框架，Agent 可以分工合作<br>
+                                    <strong>优势：</strong>适合复杂任务拆解，25k+ stars<br>
+                                    <strong>适合：</strong>需要多个 Agent 协作的场景<br>
+                                    <span style="color: #64748b; font-size: 0.85em;">例：销售 Agent + 客服 Agent + 财务 Agent</span>
+                                </span>
+                            </div>
+                            <div class="stack-card" style="border-left: 4px solid #0078d4;">
+                                <span class="stack-icon">🔷</span>
+                                <span class="stack-name"><strong>AutoGen（微软）</strong></span>
+                                <span class="stack-desc">
+                                    <strong>特点：</strong>微软出品，企业级多智能体框架<br>
+                                    <strong>优势：</strong>代码生成能力强，适合开发场景<br>
+                                    <strong>适合：</strong>需要代码生成、调试的 Agent<br>
+                                    <span style="color: #64748b; font-size: 0.85em;">例：自动写代码、调试、测试</span>
+                                </span>
+                            </div>
+                            <div class="stack-card" style="border-left: 4px solid #6366f1;">
+                                <span class="stack-icon">🔗</span>
+                                <span class="stack-name"><strong>LangChain（基础版）</strong></span>
+                                <span class="stack-desc">
+                                    <strong>特点：</strong>最流行的 LLM 应用框架，生态最丰富<br>
+                                    <strong>优势：</strong>文档完善、社区活跃、100k+ stars<br>
+                                    <strong>适合：</strong>简单 Agent、RAG 应用<br>
+                                    <span style="color: #f59e0b; font-size: 0.85em;">⚠️ 复杂 Agent 建议用 LangGraph</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 其他组件 -->
+                    <div>
+                        <h4 style="font-size: 1.2em; font-weight: 700; color: var(--text); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>🔧</span> 其他核心组件
+                        </h4>
+                        <div class="stack-grid">
+                            <div class="stack-card">
+                                <span class="stack-icon">🗄️</span>
+                                <span class="stack-name">记忆存储</span>
+                                <span class="stack-desc">
+                                    <strong>PostgreSQL：</strong>会话历史、用户数据<br>
+                                    <strong>Milvus / Chroma：</strong>向量知识库（RAG）
+                                </span>
+                            </div>
+                            <div class="stack-card">
+                                <span class="stack-icon">🔌</span>
+                                <span class="stack-name">服务层</span>
+                                <span class="stack-desc">
+                                    <strong>FastAPI：</strong>提供 REST 接口<br>
+                                    <strong>Docker / K8s：</strong>容器化部署
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-block">
+                    <div class="phase-marker">2</div>
+                    <div class="phase-title">核心架构设计 (The Architecture)</div>
+                    <p style="color:var(--text-light); margin-bottom: 15px;">Agent 不是一个函数，而是一个<strong>"有状态的循环系统"</strong>。我们需要定义它在运行过程中需要"记住"什么。</p>
+                    
+                    <div class="state-list">
+                        <div style="margin-bottom: 10px; font-weight:700; color:#059669;">📦 AgentState (状态定义):</div>
+                        <div class="state-item">
+                            <span class="state-key">input</span>
+                            <span class="state-val">用户的原始问题（如"查下 Alice 的订单"）</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-key">chat_history</span>
+                            <span class="state-val">上下文记忆列表（List[Message]）</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-key">scratchpad</span>
+                            <span class="state-val">思考草稿本（记录推理步骤、工具返回的中间结果）</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-key">next_step</span>
+                            <span class="state-val">路由决策（是继续调用工具，还是结束并回复？）</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-block">
+                    <div class="phase-marker">3</div>
+                    <div class="phase-title">工作流编排 (The Workflow)</div>
+                    <p style="color:var(--text-light); margin-bottom: 15px;">使用 LangGraph 构建图结构。这就是 Agent 思考和行动的"脑回路"。</p>
+                    
+                    <div class="arch-flow">
+                        <div style="position: absolute; width: 200px; height: 200px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; top: -50px; left: -50px; filter: blur(40px);"></div>
+
+                        <div class="flow-row">
+                            <span style="color:#94a3b8; width: 60px;">Start</span>
+                            <span class="flow-arrow">➜</span>
+                            <div class="flow-node">
+                                <strong>🤔 思考节点 (Reason)</strong>
+                                <small>LLM 分析当前状态，决定调用什么工具</small>
+                            </div>
+                            <span class="flow-arrow">➜</span>
+                            <div class="flow-node" style="border-color: #f59e0b;">
+                                <strong>🚦 路由判断</strong>
+                                <small>如果有工具调用 -> 去行动<br>如果完成 -> 去结束</small>
+                            </div>
+                        </div>
+                        
+                        <div class="flow-row" style="justify-content: flex-end;">
+                            <div style="width: 20px; height: 40px; border-right: 2px dashed #64748b; border-bottom: 2px dashed #64748b; margin-right: 50px;"></div>
+                        </div>
+
+                        <div class="flow-row">
+                            <div class="flow-node" style="border-color: #10b981;">
+                                <strong>🛠️ 行动节点 (Action)</strong>
+                                <small>执行 CRM 查询 / 发送邮件 / 搜索知识库</small>
+                            </div>
+                            <span class="flow-arrow">➜</span>
+                            <div class="flow-node">
+                                <strong>👁️ 观察节点 (Observe)</strong>
+                                <small>获取工具结果，写回状态，跳回思考节点</small>
+                            </div>
+                            <span class="flow-arrow" style="transform: rotate(180deg);">⤴</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-block">
+                    <div class="phase-marker">4</div>
+                    <div class="phase-title">企业知识库 (RAG Pipeline)</div>
+                    <p style="color:var(--text-light); margin-bottom: 15px;">让 Agent 懂公司业务。这不仅仅是"上传文件"，而是一条完整的数据处理流水线。</p>
+                    
+                    <div class="pipeline-viz">
+                        <div class="pipe-stage">
+                            <span class="pipe-icon">📄</span>
+                            <strong>数据加载</strong>
+                            <div style="font-size:0.8em; color:#64748b; margin-top:4px;">PDF/Word/Excel</div>
+                        </div>
+                        <div class="pipe-stage">
+                            <span class="pipe-icon">✂️</span>
+                            <strong>切分 (Split)</strong>
+                            <div style="font-size:0.8em; color:#64748b; margin-top:4px;">按语义/字符切块</div>
+                        </div>
+                        <div class="pipe-stage">
+                            <span class="pipe-icon">🔢</span>
+                            <strong>向量化 (Embed)</strong>
+                            <div style="font-size:0.8em; color:#64748b; margin-top:4px;">转为数学向量</div>
+                        </div>
+                        <div class="pipe-stage">
+                            <span class="pipe-icon">🗄️</span>
+                            <strong>存储 (Store)</strong>
+                            <div style="font-size:0.8em; color:#64748b; margin-top:4px;">存入向量数据库</div>
+                        </div>
+                        <div class="pipe-stage" style="background:#f0fdf4; border-color:#10b981;">
+                            <span class="pipe-icon">🔍</span>
+                            <strong>检索 (Retrieve)</strong>
+                            <div style="font-size:0.8em; color:#64748b; margin-top:4px;">Agent 随时调用</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="phase-block">
+                    <div class="phase-marker">5</div>
+                    <div class="phase-title">工具开发与集成</div>
+                    <p style="color:var(--text-light); margin-bottom: 15px;">Agent 并没有魔法，它通过<strong>标准化的接口描述</strong>来理解并调用你的内部 API。</p>
+                    
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px;">
+                        <div style="font-weight: 700; color: #3b82f6; margin-bottom: 10px;">🛠️ 定义一个工具 (示例：查询CRM)</div>
+                        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: 0.9em;">
+                            <div style="color: #64748b;">工具名称:</div>
+                            <div style="font-family: monospace;">query_crm_customer</div>
+                            
+                            <div style="color: #64748b;">功能描述:</div>
+                            <div style="background: #fff; padding: 5px 10px; border-radius: 4px; border: 1px solid #e2e8f0;">
+                                "当需要获取客户的详细信息（如订单状态、联系方式、历史记录）时使用此工具。"
+                                <span style="color: #ef4444;">(重要：LLM 通过这段描述决定是否调用)</span>
+                            </div>
+                            
+                            <div style="color: #64748b;">输入参数:</div>
+                            <div style="font-family: monospace;">{ "customer_id": "string (必填)" }</div>
+                            
+                            <div style="color: #64748b;">实际逻辑:</div>
+                            <div>调用公司内部 API <code>GET /api/v1/customers/{id}</code></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="scenarios">
+            <h2 class="section-title">🎬 实际场景对比</h2>
+            <div class="scenario">
+                <h3>场景 1：销售经理整理客户跟进</h3>
+                <div class="scenario-grid">
+                    <div class="scenario-item l1">
+                        <strong>Level 1: LLM</strong>
+                        <p>❌ 失败。需要手动复制数据给它。</p>
+                    </div>
+                    <div class="scenario-item l2">
+                        <strong>Level 2: 工作流</strong>
+                        <p>⚠️ 死板。只能按预设流程执行。</p>
+                    </div>
+                    <div class="scenario-item l3">
+                        <strong>Level 3: 智能体</strong>
+                        <p>✅ 完美。自动分析数据，主动提出建议。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ecosystem-section">
+            <h2 class="section-title">🌟 更多热门 Agent 生态</h2>
+            <div class="ecosystem-grid">
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-name">BabyAGI</div>
+                        <a href="#" class="btn btn-web">🌐</a>
+                    </div>
+                    <div class="agent-thumbnail-wrapper">
+                        <div class="thumb-bg bg-orange">
+                            <div style="font-size: 3em;">👶</div>
+                            <div style="font-weight: 700;">BabyAGI</div>
+                        </div>
+                        <div class="agent-play-icon">▶</div>
+                    </div>
+                    <p class="agent-desc">极简代码，展示智能体核心逻辑。</p>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-name">AutoGPT</div>
+                        <a href="#" class="btn btn-web">🌐</a>
+                    </div>
+                    <div class="agent-thumbnail-wrapper">
+                        <div class="thumb-bg bg-blue">
+                            <div style="font-size: 3em;">🚀</div>
+                            <div style="font-weight: 700;">AutoGPT</div>
+                        </div>
+                        <div class="agent-play-icon">▶</div>
+                    </div>
+                    <p class="agent-desc">经典的自主智能体实现，自动拆解任务。</p>
+                </div>
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-name">AgentGPT</div>
+                        <a href="#" class="btn btn-web">🌐</a>
+                    </div>
+                    <div class="agent-thumbnail-wrapper">
+                        <div class="thumb-bg bg-purple">
+                            <div style="font-size: 3em;">🌐</div>
+                            <div style="font-weight: 700;">AgentGPT</div>
+                        </div>
+                        <div class="agent-play-icon">▶</div>
+                    </div>
+                    <p class="agent-desc">浏览器版智能体，可视化执行过程。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="agent-cockpit-demo" style="margin-top: 60px;">
+            <h2 class="section-title">🎮 AI Agent 开发者控制面板演示</h2>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 30px;">
+                实时查看 Agent 的推理过程、工具调用与状态变化
+            </p>
+            
+            <div class="cockpit-container" id="agentCockpit">
+                <div class="cockpit-sidebar">
+                    <div class="cockpit-logo">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/></svg>
+                    </div>
+                    <div class="sidebar-icon active">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                    </div>
+                    <div class="sidebar-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    </div>
+                    <div style="margin-top: auto;">
+                        <div id="statusIndicator" style="width: 12px; height: 12px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981;"></div>
+                    </div>
+                </div>
+
+                <div class="cockpit-main">
+                    <div class="chat-panel">
+                        <div class="panel-header">
+                            <span style="color:white; font-weight:600;">💬 对话测试</span>
+                            <span style="font-size:11px; padding:4px 8px; background:#0f172a; border-radius:4px; color:#94a3b8;">gpt-4o</span>
+                        </div>
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message-bubble msg-system">System: Agent initialized. Ready.</div>
+                        </div>
+                        <div class="chat-input-area" style="position:relative;">
+                            <textarea id="chatInput" class="chat-input" placeholder="输入指令...">帮我查询客户 Alice 的订单状态，如果是延迟状态，发邮件以此致歉。</textarea>
+                            <button id="runBtn" onclick="runAgentSimulation()" class="send-btn">发送</button>
+                        </div>
+                    </div>
+
+                    <div class="viz-panel">
+                        <div class="graph-area">
+                            <div style="position: absolute; top: 16px; left: 24px; z-index: 10; color: #94a3b8; font-size: 12px; font-weight: 600;">
+                                🕸️ LangGraph 拓扑
+                            </div>
+                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: 40px;">
+                                <div id="nodeStart" class="graph-node" data-status="idle">
+                                    <div class="node-circle">Input</div>
+                                </div>
+                                <div class="arrow">➜</div>
+                                <div id="nodeReason" class="graph-node" data-status="idle">
+                                    <div class="node-circle" style="border-color: #f59e0b; color: #f59e0b;">Reason</div>
+                                </div>
+                                <div class="arrow">➜</div>
+                                <div id="nodeAct" class="graph-node" data-status="idle">
+                                    <div class="node-circle" style="border-color: #3b82f6; color: #3b82f6;">Act</div>
+                                </div>
+                                <div class="arrow">➜</div>
+                                <div id="nodeGenerate" class="graph-node" data-status="idle">
+                                    <div class="node-circle" style="border-color: #10b981; color: #10b981;">End</div>
+                                </div>
+                            </div>
+                            <div id="toolIndicator" style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #60a5fa; padding: 8px 16px; border-radius: 20px; font-size: 12px;">
+                                🔧 Executing Tool...
+                            </div>
+                        </div>
+                        <div class="logs-area">
+                            <div class="logs-col">
+                                <div class="logs-header">📝 实时状态 (AgentState)</div>
+                                <div class="logs-content">
+                                    <pre id="stateDisplay" style="margin:0; color: #34d399;">{}</pre>
+                                </div>
+                            </div>
+                            <div class="logs-col">
+                                <div class="logs-header">
+                                    <span>📟 系统日志</span>
+                                    <span style="cursor:pointer" onclick="clearLogs()">🗑️</span>
+                                </div>
+                                <div id="logsContainer" class="logs-content">
+                                    <span style="color: #64748b;">等待任务启动...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border-radius: 20px; padding: 40px; margin: 60px 0; text-align: center; box-shadow: var(--shadow-lg);">
+            <h2 style="font-size: 2.5em; margin-bottom: 20px;">🎯 核心要点总结</h2>
+            <div style="max-width: 900px; margin: 0 auto; text-align: left; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 16px; backdrop-filter: blur(10px);">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="color: #34d399; margin-bottom: 10px;">💡 三个级别的本质区别</h3>
+                    <p><strong>Level 1 (LLM):</strong> 有大脑，没手脚。</p>
+                    <p><strong>Level 2 (工作流):</strong> 有手脚，但死板。</p>
+                    <p><strong>Level 3 (智能体):</strong> 有大脑，有手脚，还会思考。</p>
+                </div>
+                <div>
+                    <h3 style="color: #fcd34d; margin-bottom: 10px;">🚀 行动建议</h3>
+                    <p>小公司先用现成产品（AgentGPT），大中型公司逐步转向自研（LangGraph）。AI Agent 不是未来，而是现在。</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 滚动动画
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.level-card, .agent-card, .scenario, .compare-card, .tech-roadmap, .decision-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(el);
+        });
+
+        // ===== AI Agent 控制面板功能 =====
+        let agentRunning = false;
+        let agentState = {
+            user_query: "",
+            customer_info: null,
+            reasoning: [],
+            actions_taken: [],
+            status: "ready"
+        };
+        let logs = [];
+
+        function addLog(type, msg) {
+            const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+            logs.push({ time, type, msg });
+            updateLogsDisplay();
+        }
+
+        function updateLogsDisplay() {
+            const container = document.getElementById('logsContainer');
+            if (logs.length === 0) {
+                container.innerHTML = '<span style="color: #64748b;">等待任务启动...</span>';
+                return;
+            }
+            container.innerHTML = logs.map(log => {
+                const colors = {
+                    info: '#94a3b8',
+                    llm: '#fbbf24',
+                    tool: '#60a5fa',
+                    data: '#c084fc',
+                    success: '#34d399'
+                };
+                return `
+                    <div style="margin-bottom:6px; font-family:'Consolas', monospace;">
+                        <span style="color:#64748b; margin-right:8px;">[${log.time}]</span>
+                        <span style="color:${colors[log.type] || colors.info};">${log.msg}</span>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateStateDisplay() {
+            const display = document.getElementById('stateDisplay');
+            display.textContent = JSON.stringify(agentState, null, 2);
+        }
+
+        function setNodeStatus(nodeId, status) {
+            const node = document.getElementById(nodeId);
+            if (node) {
+                const circle = node.querySelector('.node-circle');
+                if(status !== 'idle') {
+                    circle.style.boxShadow = '0 0 15px currentColor';
+                    circle.style.transform = 'scale(1.1)';
+                    node.style.opacity = '1';
+                } else {
+                    circle.style.boxShadow = 'none';
+                    circle.style.transform = 'scale(1)';
+                    node.style.opacity = '0.6';
+                }
+            }
+        }
+
+        function setAllNodesIdle() {
+            ['nodeStart', 'nodeReason', 'nodeAct', 'nodeGenerate'].forEach(id => {
+                setNodeStatus(id, 'idle');
+            });
+        }
+
+        async function runAgentSimulation() {
+            if (agentRunning) return;
+            
+            const inputEl = document.getElementById('chatInput');
+            const input = inputEl.value.trim();
+            if (!input) return;
+
+            agentRunning = true;
+            const runBtn = document.getElementById('runBtn');
+            runBtn.disabled = true;
+            runBtn.textContent = '运行中...';
+            runBtn.style.opacity = '0.7';
+
+            // 重置
+            logs = [];
+            agentState = {
+                user_query: input,
+                customer_info: null,
+                reasoning: [],
+                actions_taken: [],
+                status: "processing"
+            };
+            setAllNodesIdle();
+            document.getElementById('statusIndicator').style.background = '#fbbf24'; // Yellow for processing
+
+            // UI 更新
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML += `<div class="message-bubble msg-user">${input}</div>`;
+            inputEl.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            addLog('info', `New Task: ${input}`);
+            updateStateDisplay();
+
+            // 1. Input
+            setNodeStatus('nodeStart', 'active');
+            await delay(600);
+            setNodeStatus('nodeStart', 'idle');
+
+            // 2. Reason
+            setNodeStatus('nodeReason', 'active');
+            addLog('llm', 'Thinking: Need to check order status for "Alice"...');
+            await delay(1200);
+            agentState.reasoning.push("Intent: Check Order -> Tool: CRM");
+            updateStateDisplay();
+            setNodeStatus('nodeReason', 'idle');
+
+            // 3. Act
+            setNodeStatus('nodeAct', 'active');
+            document.getElementById('toolIndicator').style.display = 'block';
+            document.getElementById('toolIndicator').textContent = '🔧 CRM.get_customer("Alice")';
+            addLog('tool', 'Calling CRM API...');
+            await delay(1500);
+            
+            const mockData = { id: "C992", name: "Alice", status: "Delayed" };
+            addLog('data', `API Result: ${JSON.stringify(mockData)}`);
+            agentState.customer_info = mockData;
+            agentState.actions_taken.push("CRM Query");
+            updateStateDisplay();
+            document.getElementById('toolIndicator').style.display = 'none';
+            setNodeStatus('nodeAct', 'idle');
+
+            // 4. Reason Again
+            setNodeStatus('nodeReason', 'active');
+            addLog('llm', 'Thinking: Order is delayed. Next: Send apology email.');
+            await delay(1200);
+            agentState.reasoning.push("Condition: Delayed -> Action: Email");
+            updateStateDisplay();
+            setNodeStatus('nodeReason', 'idle');
+
+            // 5. Act (Email)
+            setNodeStatus('nodeAct', 'active');
+            document.getElementById('toolIndicator').style.display = 'block';
+            document.getElementById('toolIndicator').textContent = '✉️ Email.send_apology()';
+            addLog('tool', 'Sending Email...');
+            await delay(1500);
+            agentState.actions_taken.push("Email Sent");
+            updateStateDisplay();
+            document.getElementById('toolIndicator').style.display = 'none';
+            setNodeStatus('nodeAct', 'idle');
+
+            // 6. Finish
+            setNodeStatus('nodeGenerate', 'active');
+            await delay(800);
+            const response = "已查询到 Alice 订单延迟。根据策略，已自动发送致歉邮件。";
+            chatMessages.innerHTML += `<div class="message-bubble msg-agent">${response}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            addLog('success', 'Task Completed.');
+            agentState.status = "completed";
+            updateStateDisplay();
+            document.getElementById('statusIndicator').style.background = '#10b981'; // Green for ready
+
+            agentRunning = false;
+            runBtn.disabled = false;
+            runBtn.textContent = '发送';
+            runBtn.style.opacity = '1';
+            setNodeStatus('nodeGenerate', 'idle');
+        }
+
+        function clearLogs() {
+            logs = [];
+            updateLogsDisplay();
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Init
+        updateStateDisplay();
+        updateLogsDisplay();
+    </script>
+</body>
+</html>
